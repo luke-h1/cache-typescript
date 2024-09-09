@@ -1,6 +1,5 @@
 type CacheItem<T> = {
   value: T;
-  expiry: number | null;
 };
 
 type CacheStore<K, V> = {
@@ -12,15 +11,11 @@ type CacheStore<K, V> = {
   size: () => number;
 };
 
-export default function createCache<K, V>(defaultTtl = 0): CacheStore<K, V> {
+export default function createCache<K, V>(): CacheStore<K, V> {
   const cache = new Map<K, CacheItem<V>>();
 
-  const set = (key: K, value: V, ttl = defaultTtl): void => {
-    const expiry = ttl > 0 ? Date.now() + ttl : null;
-    cache.set(key, {
-      value,
-      expiry,
-    });
+  const set = (key: K, value: V): void => {
+    cache.set(key, { value });
   };
 
   const get = (key: K): V | null => {
@@ -30,11 +25,6 @@ export default function createCache<K, V>(defaultTtl = 0): CacheStore<K, V> {
       return null;
     }
 
-    if (item.expiry !== null && Date.now() > item.expiry) {
-      // evict
-      cache.delete(key);
-      return null;
-    }
     return item.value;
   };
 
@@ -53,10 +43,6 @@ export default function createCache<K, V>(defaultTtl = 0): CacheStore<K, V> {
       return false;
     }
 
-    if (item.expiry !== null && Date.now() > item.expiry) {
-      cache.delete(key);
-      return false;
-    }
     return true;
   };
 
